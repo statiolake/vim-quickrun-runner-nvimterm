@@ -45,9 +45,11 @@ function! s:runner.run(commands, input, session) abort
 
   " If we can determine the previous buffer, use the buffer. If there are no
   " buffer or multiple buffers found, simply create a new buffer.
-  let qrwinnr = bufwinnr(bufnr('quickrun'))
+  let qrwinnr = bufwinnr(get(g:, "__quickrun_nvimterm_qrbufnr", -1))
   if qrwinnr >= 0
     execute qrwinnr . 'wincmd w'
+    enew
+    execute "bwipeout! " . g:__quickrun_nvimterm_qrbufnr
   else
     if self.config.opener !=# 'auto'
       let cmd = self.config.opener
@@ -56,6 +58,7 @@ function! s:runner.run(commands, input, session) abort
     endif
     execute cmd
   endif
+  let g:__quickrun_nvimterm_qrbufnr = bufnr()
   let self._jobid = termopen(cmd_arg, options)
   if !self.config.into
     call s:VT.jump(prev_window)

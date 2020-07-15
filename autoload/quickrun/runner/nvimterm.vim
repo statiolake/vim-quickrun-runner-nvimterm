@@ -9,7 +9,8 @@ let s:VT = g:quickrun#V.import('Vim.ViewTracer')
 let s:is_win = g:quickrun#V.Prelude.is_windows()
 let s:runner = {
 \   'config': {
-\     'opener': 'new',
+\     'opener': 'auto',
+\     'vsplit_width': 80,
 \     'into': 0,
 \   },
 \ }
@@ -41,7 +42,20 @@ function! s:runner.run(commands, input, session) abort
 
   let self._key = a:session.continue()
   let prev_window = s:VT.trace_window()
-  execute self.config.opener
+
+  " If we can determine the previous buffer, use the buffer. If there are no
+  " buffer or multiple buffers found, simply create a new buffer.
+  let qrwinnr = bufwinnr(bufnr('quickrun'))
+  if qrwinnr >= 0
+    execute qrwinnr . 'wincmd w'
+  else
+    if self.config.opener !=# 'auto'
+      let cmd = self.config.opener
+    else
+      let cmd = winwidth(0) >= self.config.vsplit_width ? 'vnew' : 'new'
+    endif
+    execute cmd
+  endif
   let self._jobid = termopen(cmd_arg, options)
   if !self.config.into
     call s:VT.jump(prev_window)

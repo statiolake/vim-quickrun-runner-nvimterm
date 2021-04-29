@@ -15,6 +15,7 @@ let s:runner = {
 \   },
 \ }
 
+let s:tabpage_qrbufnr = {}
 
 function! s:runner.validate() abort
   if !has('nvim')
@@ -43,22 +44,20 @@ function! s:runner.run(commands, input, session) abort
   let self._key = a:session.continue()
   let prev_window = s:VT.trace_window()
 
-  " If we can determine the previous buffer, use the buffer. If there are no
-  " buffer or multiple buffers found, simply create a new buffer.
-  let qrwinnr = bufwinnr(get(g:, "__quickrun_nvimterm_qrbufnr", -1))
-  if qrwinnr >= 0
-    execute qrwinnr . 'wincmd w'
-    enew
-    execute "bwipeout! " . g:__quickrun_nvimterm_qrbufnr
-  else
-    if self.config.opener !=# 'auto'
-      let cmd = self.config.opener
-    else
-      let cmd = winwidth(0) >= self.config.vsplit_width ? 'vnew' : 'new'
-    endif
-    execute cmd
+  " Find the quickrun buffer in the current tab page and close them. Wiping
+  " out the buffer is enough to close the window showing the quickrun buffer.
+  let qrbufnr = get(s:tabpage_qrbufnr, tabpagenr(), -1)
+  if qrbufnr >= 0
+    execute "bwipeout! " . qrbufnr
   endif
-  let g:__quickrun_nvimterm_qrbufnr = bufnr()
+
+  if self.config.opener !=# 'auto'
+    let cmd = self.config.opener
+  else
+    let cmd = winwidth(0) >= self.config.vsplit_width ? 'vnew' : 'new'
+  endif
+  execute cmd
+  let s:tabpage_qrbufnr[tabpagenr()] = bufnr()
   let self._jobid = termopen(cmd_arg, options)
   if !self.config.into
     call s:VT.jump(prev_window)

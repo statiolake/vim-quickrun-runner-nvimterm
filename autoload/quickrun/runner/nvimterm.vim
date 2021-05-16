@@ -6,7 +6,7 @@
 
 let s:VT = g:quickrun#V.import('Vim.ViewTracer')
 
-let s:is_win = g:quickrun#V.Prelude.is_windows()
+let s:is_win = has('win32')
 let s:runner = {
 \   'config': {
 \     'opener': 'auto',
@@ -73,7 +73,7 @@ function! s:runner.sweep() abort
 endfunction
 
 function! s:runner._job_on_exit(job, exit_status, event) abort
-  call quickrun#session(self._key, 'finish', a:exit_status)
+  call quickrun#session#call(self._key, 'finish', a:exit_status)
 endfunction
 
 function! quickrun#runner#nvimterm#new() abort

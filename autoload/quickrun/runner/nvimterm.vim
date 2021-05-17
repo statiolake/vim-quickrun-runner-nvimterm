@@ -47,7 +47,7 @@ function! s:runner.run(commands, input, session) abort
   " Find the quickrun buffer in the current tab page and close them. Wiping
   " out the buffer is enough to close the window showing the quickrun buffer.
   let qrbufnr = get(s:tabpage_qrbufnr, tabpagenr(), -1)
-  if qrbufnr >= 0
+  if qrbufnr >= 0 && bufexists(qrbufnr)
     execute "bwipeout! " . qrbufnr
   endif
 
